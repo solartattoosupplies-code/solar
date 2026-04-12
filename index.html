@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Solar">
+<title>Solar Tattoo — CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+:root{--gold:#c8a84b;--gold-dim:rgba(200,168,75,0.12);--gold-border:rgba(200,168,75,0.3);--black:#080808;--dark:#101010;--card:#151515;--mid:#1c1c1c;--border:#222;--border2:#2a2a2a;--text:#ede9e3;--muted:#5a5a5a;--muted2:#333;--ok:#2d5a1a;--ok-text:#7fd050;--err:#2a0e0e;--err-text:#f07070;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--black);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;min-height:100vh}
+.hdr{background:var(--black);border-bottom:1px solid var(--border);padding:13px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200}
+.hdr img{height:26px;filter:invert(1) brightness(1.1);display:block}
+.hdr-fb{font-size:11px;font-weight:800;letter-spacing:3px;color:var(--gold);text-transform:uppercase;display:none}
+.hdr-right{margin-left:auto}
+.pill{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-border);padding:4px 10px;border-radius:20px;white-space:nowrap}
+.nav{background:var(--dark);border-bottom:1px solid var(--border);display:flex}
+.ntab{flex:1;padding:11px 4px;text-align:center;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;-webkit-user-select:none}
+.ntab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.page{display:none;padding:18px 15px 80px;max-width:600px;margin:0 auto}
+.page.active{display:block}
+.slabel{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;font-weight:600}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.field{margin-bottom:10px}.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
+input[type=text],input[type=email],input[type=url],textarea{width:100%;background:var(--mid);border:1px solid var(--border2);border-radius:8px;padding:11px 13px;font-size:15px;color:var(--text);outline:none;font-family:inherit;-webkit-appearance:none;transition:border-color .2s;resize:vertical}
+input:focus,textarea:focus{border-color:var(--gold)}
+input::placeholder,textarea::placeholder{color:var(--muted2)}
+textarea{min-height:80px;font-size:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border:none;border-radius:7px;cursor:pointer;transition:all .15s;user-select:none;-webkit-user-select:none}
+.btn:active{transform:scale(0.97)}
+.btn-gold{background:var(--gold);color:#080808;padding:13px 20px}
+.btn-gold:disabled{background:var(--mid);color:var(--muted);cursor:default;transform:none}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2);padding:8px 12px;font-size:10px}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-outline:disabled{opacity:.3;cursor:default}
+.btn-sent{background:var(--ok);color:var(--ok-text);padding:8px 12px;font-size:10px;cursor:default}
+.btn-full{width:100%;padding:14px;font-size:12px}
+.alert{border-radius:8px;padding:11px 14px;font-size:13px;margin-bottom:12px;display:none;line-height:1.5}
+.alert.show{display:block}
+.alert-ok{background:#0e1e08;color:var(--ok-text);border:1px solid #1e3a10}
+.alert-err{background:var(--err);color:var(--err-text);border:1px solid #4a1818}
+.alert-info{background:#0a1622;color:#60a0e0;border:1px solid #163050}
+.spinner{width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.client-list{display:flex;flex-direction:column;gap:10px}
+.crow{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.crow-top{display:flex;align-items:center;gap:11px;padding:13px 15px;border-bottom:1px solid var(--border)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--mid);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0;text-transform:uppercase}
+.cinfo{flex:1;min-width:0}
+.cname{font-size:13px;font-weight:600}
+.cemail{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdel{width:26px;height:26px;border:1px solid var(--border2);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .15s}
+.cdel:hover{border-color:#5a1515;color:#f07070;background:#1a0808}
+.fsteps{display:grid;grid-template-columns:repeat(3,1fr)}
+.fstep{padding:11px 9px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
+.fstep:last-child{border-right:none}
+.fstep-hdr{display:flex;align-items:center;justify-content:space-between}
+.fstep-num{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.dot.done{background:var(--gold)}
+.ftime{font-size:10px;color:var(--muted);min-height:13px}
+.ftime.done{color:var(--ok-text)}
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+.prev-shell{border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:12px}
+.subj-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.subj-label{font-size:11px;color:var(--muted);white-space:nowrap}
+.subj-val{font-size:12px;color:var(--text);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.upload-zone:hover{border-color:var(--gold);background:var(--gold-dim)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.img-thumb{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;background:var(--mid)}
+.img-thumb img{width:100%;height:100%;object-fit:cover}
+.img-thumb-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.7);border:none;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.prog-track{height:4px;background:var(--mid);border-radius:2px;margin:10px 0 6px;overflow:hidden}
+.prog-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.camp-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.camp-opt{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 12px;cursor:pointer;transition:all .2s;user-select:none;-webkit-user-select:none;text-align:center}
+.camp-opt.active{border-color:var(--gold);background:rgba(200,168,75,0.08)}
+.camp-opt-icon{font-size:20px;margin-bottom:6px;opacity:.7}
+.camp-opt-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px}
+.camp-opt.active .camp-opt-title{color:var(--gold)}
+.camp-opt-desc{font-size:10px;color:var(--muted);line-height:1.4}
+.foot{text-align:center;margin-top:36px;font-size:10px;color:var(--muted2);letter-spacing:.5px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <img src="https://cdn.shopify.com/s/files/1/0514/3704/3883/files/logoweb_negro_f4ee7b19-7721-46b0-8453-c64e507b4a16.png?v=1746571715" alt="Solar" onerror="this.style.display='none';document.getElementById('hdrFb').style.display='block'">
+  <div id="hdrFb" class="hdr-fb">Solar Tattoo</div>
+  <div class="hdr-right"><div class="pill" id="hdrCount">0 clientes</div></div>
+</div>
+
+<div class="nav">
+  <div class="ntab active" onclick="goPage('lista')">Clientes</div>
+  <div class="ntab" onclick="goPage('nuevo')">+ Añadir</div>
+  <div class="ntab" onclick="goPage('marketing')">Campaña</div>
+  <div class="ntab" id="tabPreview" style="display:none" onclick="goPage('preview')">Preview</div>
+</div>
+
+<!-- LISTA -->
+<div class="page active" id="page-lista">
+  <div id="aLista" class="alert"></div>
+  <div id="loadingBar" style="text-align:center;padding:30px;color:var(--muted);font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px"><span class="spinner"></span> Cargando...</div>
+  <div id="clientList" class="client-list" style="display:none"></div>
+  <div class="foot">Solar Tattoo Supplies · Palma de Mallorca</div>
+</div>
+
+<!-- NUEVO -->
+<div class="page" id="page-nuevo">
+  <div id="aNuevo" class="alert"></div>
+  <div class="slabel">Datos del cliente</div>
+  <div class="card">
+    <div class="field"><label>Nombre</label><input id="nName" type="text" placeholder="Carlos" autocomplete="given-name"/></div>
+    <div class="field"><label>Email</label><input id="nEmail" type="email" placeholder="carlos@estudio.com" autocomplete="email"/></div>
+    <div class="field"><label>Enlace al carrito abandonado</label><input id="nLink" type="url" placeholder="https://solartattoosupplies.com/cart/..."/></div>
+  </div>
+  <button class="btn btn-gold btn-full" onclick="addClient()">Añadir cliente</button>
+  <div class="foot" style="margin-top:20px">Los datos se guardan en Google Sheets.</div>
+</div>
+
+<!-- MARKETING -->
+<div class="page" id="page-marketing">
+  <div id="aMarketing" class="alert"></div>
+  <div class="slabel">Tipo de campaña</div>
+  <div class="camp-opts">
+    <div class="camp-opt active" id="opt-free" onclick="selectCamp('free')">
+      <div class="camp-opt-icon">◈</div>
+      <div class="camp-opt-title">Envío gratis</div>
+      <div class="camp-opt-desc">Código FREEDELIVERY predefinido y listo para enviar</div>
+    </div>
+    <div class="camp-opt" id="opt-custom" onclick="selectCamp('custom')">
+      <div class="camp-opt-icon">✦</div>
+      <div class="camp-opt-title">Campaña libre</div>
+      <div class="camp-opt-desc">Escribe tu propio mensaje con imágenes</div>
+    </div>
+  </div>
+
+  <!-- PREVIEW FREEDELIVERY -->
+  <div id="campFreeBlock">
+    <div class="slabel">Vista previa del email</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="background:#0a0a0a;padding:16px 18px;border-bottom:2px solid #c8a84b;display:flex;align-items:center;gap:10px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:3px;color:#fff;text-transform:uppercase">Solar Tattoo</div>
+        <div style="font-size:9px;letter-spacing:2px;color:#c8a84b;text-transform:uppercase;margin-left:2px">Supplies</div>
+      </div>
+      <div style="background:#fffdf5;padding:18px">
+        <div style="font-size:14px;font-weight:700;color:#111;margin-bottom:8px;font-family:Georgia,serif">Hola [Nombre], el envío corre de nuestra cuenta</div>
+        <div style="font-size:12px;color:#555;line-height:1.7;margin-bottom:14px">Esta semana tenemos una novedad especial para ti: <strong>envío completamente gratis</strong> en tu próximo pedido, sin mínimo de compra.</div>
+        <div style="background:#0a0a0a;border-radius:6px;padding:16px;text-align:center;margin-bottom:14px">
+          <div style="font-size:9px;color:#c8a84b;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">Tu código exclusivo</div>
+          <div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:5px;border:2px solid #c8a84b;display:inline-block;padding:8px 16px;border-radius:4px">FREEDELIVERY</div>
+          <div style="font-size:10px;color:#c8a84b;margin-top:8px;font-weight:600">Envío gratis · Sin mínimo · Tiempo limitado</div>
+        </div>
+        <div style="text-align:center"><div style="display:inline-block;background:#c8a84b;color:#0a0a0a;padding:10px 24px;border-radius:3px;font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase">Ver la tienda ahora</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPAÑA LIBRE -->
+  <div id="campCustomBlock" style="display:none">
+    <div class="card">
+      <div class="field"><label>Asunto</label><input id="mSubject" type="text" placeholder="Novedades Solar Tattoo Supplies"/></div>
+      <div class="field"><label>Mensaje</label><textarea id="mBody" placeholder="Escribe el mensaje para tus clientes..."></textarea></div>
+    </div>
+    <div class="slabel">Imagen de oferta (opcional)</div>
+    <div class="card">
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" accept="image/*" multiple onchange="handleImages(this.files)" id="imgInput"/>
+        <div style="font-size:22px;opacity:.4;margin-bottom:6px">▣</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">Pulsa para añadir imágenes<br><span style="font-size:11px;opacity:.6">Máx 3 imágenes</span></div>
+      </div>
+      <div class="img-grid" id="imgGrid"></div>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+    <div style="font-size:13px">Destinatarios</div>
+    <div class="pill" id="mCount">0 contactos</div>
+  </div>
+  <button class="btn btn-gold btn-full" onclick="previewCampaign()" id="btnPrevCampaign">Previsualizar y enviar</button>
+  <div class="divider"></div>
+  <div id="campProgress" style="display:none">
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px" id="progTitle">Enviando...</div>
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      <div style="font-size:12px;color:var(--muted)" id="progText">0 de 0</div>
+    </div>
+  </div>
+  <div class="foot">Solar Tattoo Supplies · Palma de Mallorca</div>
+</div>
+
+<!-- PREVIEW -->
+<div class="page" id="page-preview">
+  <div id="aPreview" class="alert"></div>
+  <div id="prevSending" style="display:none;text-align:center;padding:30px;color:var(--gold);font-size:13px">
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px"><span class="spinner"></span> Preparando email...</div>
+  </div>
+  <div id="prevContent" style="display:none">
+    <div class="slabel" id="prevLabel"></div>
+    <div class="subj-row"><span class="subj-label">Asunto:</span><span class="subj-val" id="prevSubject"></span></div>
+    <div class="prev-shell"><div id="prevHtml"></div></div>
+    <button class="btn btn-gold btn-full" onclick="confirmSend()" id="btnConfirm">Confirmar y enviar</button>
+    <div style="margin-top:8px;text-align:center"><button class="btn btn-outline" onclick="cancelPreview()" style="padding:8px 20px">Cancelar</button></div>
+  </div>
+  <div id="prevCampaign" style="display:none">
+    <div class="slabel" id="prevCampLabel"></div>
+    <div class="subj-row"><span class="subj-label">Asunto:</span><span class="subj-val" id="prevCampSubject"></span></div>
+    <div class="prev-shell"><div id="prevCampHtml"></div></div>
+    <div class="card" style="margin-top:12px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Se enviará a <strong id="prevCampCount" style="color:var(--text)">0</strong> contactos</div>
+      <button class="btn btn-gold btn-full" onclick="sendCampaign()" id="btnSendCamp">Enviar a todos ahora</button>
+    </div>
+    <div style="margin-top:8px;text-align:center"><button class="btn btn-outline" onclick="cancelPreview()" style="padding:8px 20px">Cancelar</button></div>
+  </div>
+  <div class="foot" style="margin-top:24px">Solar Tattoo Supplies · Palma de Mallorca</div>
+</div>
+
+<script>
+const SVC='service_xsjgh5m',TPL='template_sw9buax',PKEY='Fi_NO7kMgrmOP1mbe';
+const GS='https://script.google.com/macros/s/AKfycbwLYLaj_5Zy30ocoJSAf1J0aW9JDVCNUqE_-loJbUXla93qDPErxpEtTOZ6EohmO2yXeQ/exec';
+const LOGO='https://cdn.shopify.com/s/files/1/0514/3704/3883/files/logoweb_negro_f4ee7b19-7721-46b0-8453-c64e507b4a16.png?v=1746571715';
+emailjs.init(PKEY);
+
+let clients=[],pendingAction=null,pendingSubject='',pendingHtml='';
+let campaignImages=[],campaignMode=false,campaignSubject='',campaignHtml='';
+let selectedCamp='free';
+
+const LOGO_TAG=`<img src="${LOGO}" alt="Solar Tattoo Supplies" width="120" style="display:block;filter:invert(1) brightness(1.1);margin-bottom:22px" onerror="this.outerHTML='<div style=\\'font-family:Arial,sans-serif;font-size:12px;font-weight:900;letter-spacing:3px;color:#fff;text-transform:uppercase;margin-bottom:22px\\'>SOLAR TATTOO <span style=\\'color:#c8a84b\\'>SUPPLIES</span></div>'" />`;
+
+const TFOOTER=(bg)=>`<table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f4ef;border-top:1px solid #e0ddd8;border-collapse:collapse"><tr><td width="33%" style="padding:12px 8px;text-align:center;border-right:1px solid #e0ddd8"><div style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;color:#0a0a0a;text-transform:uppercase;letter-spacing:.8px">Envío gratis</div><div style="font-family:Arial,sans-serif;font-size:9px;color:#888;margin-top:1px">desde 90€</div></td><td width="33%" style="padding:12px 8px;text-align:center;border-right:1px solid #e0ddd8"><div style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;color:#0a0a0a;text-transform:uppercase;letter-spacing:.8px">Calidad</div><div style="font-family:Arial,sans-serif;font-size:9px;color:#888;margin-top:1px">garantizada</div></td><td width="33%" style="padding:12px 8px;text-align:center"><div style="font-family:Arial,sans-serif;font-size:9px;font-weight:700;color:#0a0a0a;text-transform:uppercase;letter-spacing:.8px">WhatsApp</div><div style="font-family:Arial,sans-serif;font-size:9px;color:#888;margin-top:1px">atención directa</div></td></tr></table><table width="100%" cellpadding="0" cellspacing="0" style="background:${bg};border-collapse:collapse"><tr><td style="padding:18px 30px;text-align:center"><div style="font-family:Arial,sans-serif;font-size:10px;color:#555;line-height:1.8">Solar Tattoo Supplies · Palma de Mallorca · España<br><a href="https://solartattoosupplies.com" style="color:#c8a84b;text-decoration:none">solartattoosupplies.com</a> · <a href="#" style="color:#555;text-decoration:underline;font-size:9px">Cancelar suscripción</a></div></td></tr></table>`;
+
+function selectCamp(t){
+  selectedCamp=t;
+  document.getElementById('opt-free').classList.toggle('active',t==='free');
+  document.getElementById('opt-custom').classList.toggle('active',t==='custom');
+  document.getElementById('campFreeBlock').style.display=t==='free'?'block':'none';
+  document.getElementById('campCustomBlock').style.display=t==='custom'?'block':'none';
+}
+
+function getEmailTexts(name,idx,cartUrl){
+  const url=cartUrl||'https://solartattoosupplies.com';
+  return [
+    {subject:`${name}, dejaste algo en tu carrito`,lines:[`Hola ${name},`,`Queremos recordarte que tienes artículos esperándote en tu carrito de Solar Tattoo Supplies.`,`Tu selección sigue guardada y lista para cuando quieras.`,'IR AL CARRITO',`Cualquier duda estamos en WhatsApp.`,`El equipo de Solar Tattoo Supplies`]},
+    {subject:`${name}, tenemos un descuento exclusivo para ti`,lines:[`Hola ${name},`,`Vimos que dejaste tu carrito sin completar. Queremos ayudarte con una ventaja especial.`,`Usa el código SOLAR10 y obtén un 10% de descuento. Solo válido hoy.`,'IR AL CARRITO',`El equipo de Solar Tattoo Supplies`]},
+    {subject:`${name}, último aviso sobre tu carrito`,lines:[`Hola ${name},`,`Este es nuestro último recordatorio sobre los artículos que dejaste en tu carrito.`,`Después de hoy liberaremos los productos reservados.`,'IR AL CARRITO',`Un saludo, el equipo de Solar Tattoo Supplies`]}
+  ][idx];
+}
+
+async function gsLoad(){
+  try{const r=await fetch(GS+'?t='+Date.now());const d=await r.json();clients=d.map(c=>({...c,flujos:c.flujos.map(f=>f?new Date(f).getTime():null)}));}catch(e){clients=[];}
+  renderList();updateCounts();
+  document.getElementById('loadingBar').style.display='none';
+  document.getElementById('clientList').style.display='flex';
+}
+async function gsPost(p){try{await fetch(GS,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});}catch(e){}}
+
+function goPage(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+  const idx=['lista','nuevo','marketing','preview'].indexOf(n);
+  if(idx>=0)document.querySelectorAll('.ntab')[idx].classList.add('active');
+}
+function cancelPreview(){document.getElementById('tabPreview').style.display='none';goPage(campaignMode?'marketing':'lista');campaignMode=false;}
+
+function showAlert(k,msg,type){
+  const el=document.getElementById('a'+k.charAt(0).toUpperCase()+k.slice(1));
+  if(!el)return;el.innerHTML=msg;el.className='alert show alert-'+type;
+  if(type!=='info')setTimeout(()=>el.className='alert',4000);
+}
+
+function updateCounts(){const n=clients.length;document.getElementById('hdrCount').textContent=n+(n===1?' cliente':' clientes');document.getElementById('mCount').textContent=n+' contacto'+(n===1?'':'s');}
+
+function ago(ts){if(!ts)return '';const d=Math.floor((Date.now()-ts)/1000);if(d<60)return 'ahora';if(d<3600)return 'hace '+Math.floor(d/60)+'min';if(d<86400)return 'hace '+Math.floor(d/3600)+'h';if(d<172800)return 'ayer';return 'hace '+Math.floor(d/86400)+'d';}
+
+async function addClient(){
+  const name=document.getElementById('nName').value.trim(),email=document.getElementById('nEmail').value.trim(),link=document.getElementById('nLink').value.trim();
+  if(!name){showAlert('nuevo','Pon el nombre','err');return;}
+  if(!email){showAlert('nuevo','Pon el email','err');return;}
+  if(clients.find(c=>c.email.toLowerCase()===email.toLowerCase())){showAlert('nuevo','Este email ya está en el listado','err');return;}
+  const id=Date.now();
+  clients.unshift({id,name,email,link,flujos:[null,null,null]});
+  updateCounts();renderList();
+  await gsPost({action:'addClient',id,name,email,link});
+  document.getElementById('nName').value='';document.getElementById('nEmail').value='';document.getElementById('nLink').value='';
+  showAlert('nuevo',name+' añadido correctamente','ok');
+  setTimeout(()=>goPage('lista'),900);
+}
+
+async function deleteClient(id){clients=clients.filter(c=>c.id!=id);updateCounts();renderList();await gsPost({action:'deleteClient',id});}
+
+function renderList(){
+  const el=document.getElementById('clientList');
+  if(!clients.length){el.innerHTML=`<div class="empty"><div style="font-size:30px;opacity:.3;margin-bottom:12px">◎</div><div style="font-size:13px;color:var(--muted);line-height:1.7">Aún no hay clientes.<br>Pulsa "+ Añadir" para empezar.</div></div>`;return;}
+  const labels=['Recordatorio','Desc. 10%','Última'];
+  el.innerHTML=clients.map(c=>{
+    const ini=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const next=c.flujos.findIndex(f=>f===null),allDone=c.flujos.every(f=>f!==null);
+    const steps=[0,1,2].map(i=>{
+      const sent=c.flujos[i]!==null,isNext=i===next;
+      const btn=sent?`<span class="btn btn-sent" style="width:100%;justify-content:center;margin-top:2px;font-size:10px">✓ OK</span>`:isNext?`<button class="btn btn-outline" onclick="initSend(${c.id},${i})" style="width:100%;justify-content:center;margin-top:2px">Enviar</button>`:`<button class="btn btn-outline" disabled style="width:100%;justify-content:center;margin-top:2px;opacity:.2">Enviar</button>`;
+      return `<div class="fstep"><div class="fstep-hdr"><span class="fstep-num">Email ${i+1}</span><span class="dot ${sent?'done':''}"></span></div><div style="font-size:10px;color:${sent?'var(--text)':'var(--muted)'};font-weight:${sent?600:400}">${labels[i]}</div><div class="ftime ${sent?'done':''}">${sent?ago(c.flujos[i]):'—'}</div>${btn}</div>`;
+    }).join('');
+    return `<div class="crow"><div class="crow-top"><div class="avatar">${ini}</div><div class="cinfo"><div class="cname">${c.name}</div><div class="cemail">${c.email}</div></div>${allDone?'<span class="pill" style="font-size:9px;margin-right:6px">✓ Listo</span>':''}<button class="cdel" onclick="deleteClient(${c.id})">✕</button></div><div class="fsteps">${steps}</div></div>`;
+  }).join('');
+}
+
+function initSend(clientId,flujoIdx){
+  const client=clients.find(c=>c.id==clientId);if(!client)return;
+  pendingAction={clientId,flujoIdx};campaignMode=false;
+  document.getElementById('tabPreview').style.display='block';goPage('preview');
+  document.getElementById('prevContent').style.display='none';document.getElementById('prevCampaign').style.display='none';document.getElementById('prevSending').style.display='block';document.getElementById('aPreview').className='alert';
+  const texts=getEmailTexts(client.name,flujoIdx,client.link);
+  pendingSubject=texts.subject;pendingHtml=buildCartEmail(client.name,texts.lines,client.link,flujoIdx);
+  setTimeout(()=>{
+    document.getElementById('prevLabel').textContent=`Email ${flujoIdx+1} para ${client.name}`;
+    document.getElementById('prevSubject').textContent=pendingSubject;
+    document.getElementById('prevHtml').innerHTML=pendingHtml;
+    document.getElementById('prevSending').style.display='none';document.getElementById('prevContent').style.display='block';
+    const b=document.getElementById('btnConfirm');b.innerHTML=`Confirmar y enviar email ${flujoIdx+1}`;b.disabled=false;b.className='btn btn-gold btn-full';
+  },300);
+}
+
+async function confirmSend(){
+  if(!pendingAction)return;
+  const{clientId,flujoIdx}=pendingAction,client=clients.find(c=>c.id==clientId);if(!client)return;
+  const btn=document.getElementById('btnConfirm');btn.innerHTML='<span class="spinner"></span> Enviando...';btn.disabled=true;
+  try{
+    await emailjs.send(SVC,TPL,{to_email:client.email,to_name:client.name,subject:pendingSubject,html_body:pendingHtml});
+    client.flujos[flujoIdx]=Date.now();await gsPost({action:'updateFlujo',id:client.id,flujoIndex:flujoIdx});
+    renderList();showAlert('preview',`Email enviado a ${client.email}`,'ok');
+    btn.innerHTML='Enviado ✓';btn.className='btn btn-sent btn-full';
+    setTimeout(()=>{document.getElementById('tabPreview').style.display='none';goPage('lista');pendingAction=null;},1800);
+  }catch(e){
+    showAlert('preview','Error al enviar: '+(e.text||e.message||'revisa la conexión'),'err');
+    btn.innerHTML=`Confirmar y enviar email ${flujoIdx+1}`;btn.disabled=false;btn.className='btn btn-gold btn-full';
+  }
+}
+
+function handleImages(files){
+  const rem=3-campaignImages.length,toAdd=Math.min(files.length,rem);let loaded=0;
+  for(let i=0;i<toAdd;i++){const r=new FileReader();r.onload=e=>{campaignImages.push(e.target.result);loaded++;if(loaded===toAdd)renderImgGrid();};r.readAsDataURL(files[i]);}
+  document.getElementById('imgInput').value='';
+}
+function removeImage(idx){campaignImages.splice(idx,1);renderImgGrid();}
+function renderImgGrid(){
+  document.getElementById('imgGrid').innerHTML=campaignImages.map((s,i)=>`<div class="img-thumb"><img src="${s}"/><button class="img-thumb-del" onclick="removeImage(${i})">✕</button></div>`).join('');
+  document.getElementById('uploadZone').style.display=campaignImages.length>=3?'none':'block';
+}
+
+function previewCampaign(){
+  if(!clients.length){showAlert('marketing','Añade clientes primero','err');return;}
+  campaignMode=true;
+  if(selectedCamp==='free'){
+    campaignSubject='¡Envío gratis para ti, {{NOMBRE}}!';
+    campaignHtml=buildFreeDeliveryEmail();
+  }else{
+    const subject=document.getElementById('mSubject').value.trim(),body=document.getElementById('mBody').value.trim();
+    if(!subject){showAlert('marketing','Pon el asunto','err');return;}
+    if(!body){showAlert('marketing','Escribe el mensaje','err');return;}
+    campaignSubject=subject;campaignHtml=buildMarketingEmail(body,campaignImages);
+  }
+  document.getElementById('tabPreview').style.display='block';goPage('preview');
+  document.getElementById('prevContent').style.display='none';document.getElementById('prevSending').style.display='none';document.getElementById('prevCampaign').style.display='block';
+  document.getElementById('prevCampLabel').textContent=`Vista previa — ${clients.length} destinatarios`;
+  document.getElementById('prevCampSubject').textContent=campaignSubject.replace('{{NOMBRE}}','[Nombre]');
+  document.getElementById('prevCampHtml').innerHTML=campaignHtml.replace(/\{\{NOMBRE\}\}/g,'[Nombre]');
+  document.getElementById('prevCampCount').textContent=clients.length;
+  const b=document.getElementById('btnSendCamp');b.innerHTML=`Enviar a ${clients.length} contactos`;b.disabled=false;b.className='btn btn-gold btn-full';
+}
+
+async function sendCampaign(){
+  const btn=document.getElementById('btnSendCamp');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Enviando...';
+  goPage('marketing');document.getElementById('campProgress').style.display='block';document.getElementById('btnPrevCampaign').disabled=true;
+  let sent=0;const total=clients.length;
+  for(const c of clients){
+    try{
+      await emailjs.send(SVC,TPL,{to_email:c.email,to_name:c.name,subject:campaignSubject.replace(/\{\{NOMBRE\}\}/g,c.name),html_body:campaignHtml.replace(/\{\{NOMBRE\}\}/g,c.name)});
+      sent++;
+    }catch(e){}
+    const pct=Math.round((sent/total)*100);
+    document.getElementById('progFill').style.width=pct+'%';
+    document.getElementById('progText').textContent=`${sent} de ${total} enviados`;
+    document.getElementById('progTitle').textContent=sent<total?'Enviando campaña...':'¡Campaña completada!';
+    await new Promise(r=>setTimeout(r,500));
+  }
+  showAlert('marketing',`Campaña enviada a ${sent} de ${total} contactos`,'ok');
+  document.getElementById('btnPrevCampaign').disabled=false;document.getElementById('tabPreview').style.display='none';campaignMode=false;
+  setTimeout(()=>document.getElementById('campProgress').style.display='none',5000);
+}
+
+function buildFreeDeliveryEmail(){
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0ede8;border-collapse:collapse"><tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;border-collapse:collapse">
+    <tr><td style="padding:26px 30px 0">
+      ${LOGO_TAG}
+      <div style="background:rgba(200,168,75,0.15);border:1px solid rgba(200,168,75,0.4);border-radius:20px;display:inline-block;padding:5px 14px;font-family:Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:2.5px;color:#c8a84b;text-transform:uppercase;margin-bottom:14px">Oferta especial</div>
+      <div style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:8px">Hola {{NOMBRE}},<br>el envío corre de nuestra cuenta</div>
+      <div style="font-family:Arial,sans-serif;font-size:12px;color:#777;margin-bottom:0">Por tiempo limitado · Sin mínimo de compra</div>
+      <div style="height:2px;background:linear-gradient(90deg,#c8a84b,transparent);margin-top:22px"></div>
+    </td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fffdf5;border-collapse:collapse">
+    <tr><td style="padding:28px 30px 24px">
+      <p style="margin:0 0 16px;font-size:15px;line-height:1.85;color:#1a1a1a;font-family:Georgia,serif">Esta semana tenemos una novedad especial para ti: <strong>envío completamente gratis</strong> en tu próximo pedido, sin mínimo de compra.</p>
+      <p style="margin:0 0 24px;font-size:15px;line-height:1.85;color:#1a1a1a;font-family:Georgia,serif">Solo tienes que usar el código al finalizar tu pedido y el envío va por nuestra cuenta.</p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;border-radius:6px;margin-bottom:26px">
+        <tr><td style="padding:24px 20px;text-align:center">
+          <div style="font-family:Arial,sans-serif;font-size:9px;color:#c8a84b;letter-spacing:4px;text-transform:uppercase;margin-bottom:12px">Tu código exclusivo de envío gratis</div>
+          <div style="font-family:'Courier New',monospace;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:6px;border:2px solid #c8a84b;display:inline-block;padding:12px 24px;border-radius:4px">FREEDELIVERY</div>
+          <div style="font-family:Arial,sans-serif;font-size:11px;color:#c8a84b;margin-top:12px;font-weight:600">Envío gratis · Sin mínimo · Tiempo limitado</div>
+        </td></tr>
+      </table>
+      <p style="margin:0 0 24px;font-size:15px;line-height:1.85;color:#1a1a1a;font-family:Georgia,serif">No dejes pasar esta oportunidad, es por tiempo limitado.</p>
+      <div style="text-align:center;margin-bottom:20px"><a href="https://solartattoosupplies.com" style="display:inline-block;background:#c8a84b;color:#0a0a0a;text-decoration:none;padding:15px 40px;border-radius:3px;font-family:Arial,sans-serif;font-size:11px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase">Ver la tienda ahora</a></div>
+      <p style="margin:0;font-size:13px;color:#888;font-family:Arial,sans-serif;text-align:center">El equipo de Solar Tattoo Supplies</p>
+    </td></tr>
+  </table>
+  ${TFOOTER('#0a0a0a')}
+</td></tr></table>`;
+}
+
+function buildCartEmail(name,lines,cartUrl,idx){
+  const url=cartUrl||'https://solartattoosupplies.com';
+  const p=[
+    {heroBg:'#0a0a0a',bodyBg:'#fff',bodyColor:'#1a1a1a',btnBg:'#0a0a0a',btnColor:'#fff',btnBorder:'#c8a84b',extra:''},
+    {heroBg:'#0a0a0a',bodyBg:'#fffdf5',bodyColor:'#1a1a1a',btnBg:'#c8a84b',btnColor:'#0a0a0a',btnBorder:'#c8a84b',extra:`<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;border-radius:5px;margin-bottom:20px"><tr><td style="padding:22px 16px;text-align:center"><div style="font-family:Arial,sans-serif;font-size:9px;color:#c8a84b;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px">Código exclusivo</div><div style="font-family:'Courier New',monospace;font-size:28px;font-weight:900;color:#fff;letter-spacing:7px;border:2px solid #c8a84b;display:inline-block;padding:10px 20px;border-radius:4px">SOLAR10</div><div style="font-family:Arial,sans-serif;font-size:11px;color:#c8a84b;margin-top:9px;font-weight:600">10% de descuento · Solo hoy</div></td></tr></table>`},
+    {heroBg:'#0a0a0a',bodyBg:'#fff',bodyColor:'#1a1a1a',btnBg:'#1a0808',btnColor:'#fff',btnBorder:'#8b1a1a',extra:`<table width="100%" cellpadding="0" cellspacing="0" style="background:#1a0808;border:1px solid #5a1515;border-radius:5px;margin-bottom:20px"><tr><td style="padding:14px 16px;text-align:center"><div style="font-family:Arial,sans-serif;font-size:9px;color:#cc3333;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px">Último aviso</div><div style="font-family:Georgia,serif;font-size:14px;color:#f5d5d5;line-height:1.7">Después de hoy liberaremos tu carrito.</div></td></tr></table>`}
+  ][idx];
+  const heroes=[[`${name}, dejaste algo atrás`,'Tu carrito te está esperando'],[`${name}, esto es para ti`,'Descuento exclusivo por tiempo limitado'],[`${name}, es ahora o nunca`,'Último recordatorio de tu carrito']];
+  const [ht,hs]=heroes[idx];
+  const rows=lines.map(l=>{
+    if(l==='IR AL CARRITO')return `<div style="text-align:center;margin:24px 0"><a href="${url}" style="display:inline-block;background:${p.btnBg};color:${p.btnColor};text-decoration:none;padding:14px 36px;border-radius:3px;font-family:Arial,sans-serif;font-size:11px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;border:1.5px solid ${p.btnBorder}">Volver a mi carrito</a><div style="margin-top:8px;font-family:Arial,sans-serif;font-size:10px;color:#aaa">o: <a href="${url}" style="color:#c8a84b;word-break:break-all">${url}</a></div></div>`;
+    return `<p style="margin:0 0 12px;font-size:15px;line-height:1.85;color:${p.bodyColor};font-family:Georgia,serif">${l}</p>`;
+  }).join('');
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0ede8;border-collapse:collapse"><tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:${p.heroBg};border-collapse:collapse">
+    <tr><td style="padding:26px 30px 22px">${LOGO_TAG}<div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:7px">${ht}</div><div style="font-family:Arial,sans-serif;font-size:12px;color:#666">${hs}</div><div style="height:2px;background:linear-gradient(90deg,#c8a84b,transparent);margin-top:20px"></div></td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:${p.bodyBg};border-collapse:collapse">
+    <tr><td style="padding:28px 30px 20px">${p.extra}${rows}</td></tr>
+  </table>
+  ${TFOOTER(p.heroBg)}
+</td></tr></table>`;
+}
+
+function buildMarketingEmail(bodyText,images){
+  const rows=bodyText.split('\n').filter(l=>l.trim()).map(l=>`<p style="margin:0 0 13px;font-size:15px;line-height:1.85;color:#1a1a1a;font-family:Georgia,serif">${l}</p>`).join('');
+  let img='';
+  if(images.length===1)img=`<img src="${images[0]}" alt="" style="width:100%;border-radius:6px;display:block;margin-bottom:22px"/>`;
+  else if(images.length===2)img=`<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:22px"><tr><td width="49%" style="padding-right:4px"><img src="${images[0]}" alt="" style="width:100%;border-radius:6px;display:block"/></td><td width="2%"></td><td width="49%" style="padding-left:4px"><img src="${images[1]}" alt="" style="width:100%;border-radius:6px;display:block"/></td></tr></table>`;
+  else if(images.length===3)img=`<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:22px"><tr><td width="65%" style="padding-right:4px"><img src="${images[0]}" alt="" style="width:100%;border-radius:6px;display:block"/></td><td width="35%"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding-bottom:4px"><img src="${images[1]}" alt="" style="width:100%;border-radius:6px;display:block"/></td></tr><tr><td><img src="${images[2]}" alt="" style="width:100%;border-radius:6px;display:block"/></td></tr></table></td></tr></table>`;
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0ede8;border-collapse:collapse"><tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;border-collapse:collapse">
+    <tr><td style="padding:26px 30px 22px">${LOGO_TAG}<div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:7px">Hola, {{NOMBRE}}</div><div style="font-family:Arial,sans-serif;font-size:12px;color:#666">Novedades de Solar Tattoo Supplies</div><div style="height:2px;background:linear-gradient(90deg,#c8a84b,transparent);margin-top:20px"></div></td></tr>
+  </table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff;border-collapse:collapse">
+    <tr><td style="padding:28px 30px 20px">${img}${rows}<div style="text-align:center;margin:24px 0"><a href="https://solartattoosupplies.com" style="display:inline-block;background:#c8a84b;color:#0a0a0a;text-decoration:none;padding:14px 36px;border-radius:3px;font-family:Arial,sans-serif;font-size:11px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase">Ver la tienda</a></div></td></tr>
+  </table>
+  ${TFOOTER('#0a0a0a')}
+</td></tr></table>`;
+}
+
+gsLoad();
+setInterval(()=>{if(document.getElementById('page-lista').classList.contains('active'))renderList();},60000);
+</script>
+</body>
+</html>
