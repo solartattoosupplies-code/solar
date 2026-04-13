@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Solar">
+<title>Solar Tattoo — CRM</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+:root{
+  --gold:#c8a84b;--gold-dim:rgba(200,168,75,0.1);--gold-border:rgba(200,168,75,0.28);
+  --black:#080808;--dark:#0f0f0f;--card:#141414;--mid:#1a1a1a;--border:#202020;--border2:#282828;
+  --text:#eae6e0;--muted:#585858;--muted2:#2e2e2e;
+  --ok:#253d14;--ok-text:#80d455;--err:#2a0d0d;--err-text:#f07070;
+  --r:10px;--rs:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--black);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--black);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px)}
+.hdr img{height:24px;filter:invert(1) brightness(1.1);display:block}
+.hdr-fb{font-size:10px;font-weight:800;letter-spacing:3px;color:var(--gold);text-transform:uppercase;display:none}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.pill{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-border);padding:3px 9px;border-radius:20px;white-space:nowrap}
+
+/* NAV */
+.nav{background:var(--dark);border-bottom:1px solid var(--border);display:flex}
+.ntab{flex:1;padding:10px 2px;text-align:center;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;-webkit-user-select:none}
+.ntab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* PAGES */
+.page{display:none;padding:16px 14px 80px;max-width:580px;margin:0 auto}
+.page.active{display:block}
+
+/* LABELS */
+.slabel{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:9px;font-weight:600}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px}
+
+/* FIELDS */
+.field{margin-bottom:9px}.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px;letter-spacing:.3px}
+input[type=text],input[type=email],input[type=url],input[type=number],textarea,select{width:100%;background:var(--mid);border:1px solid var(--border2);border-radius:var(--rs);padding:10px 12px;font-size:14px;color:var(--text);outline:none;font-family:inherit;-webkit-appearance:none;transition:border-color .2s;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+input::placeholder,textarea::placeholder{color:var(--muted2)}
+textarea{min-height:70px;font-size:13px;line-height:1.6}
+select option{background:var(--mid);color:var(--text)}
+
+/* PREFIX INPUT */
+.pfx-wrap{display:flex;align-items:center;background:var(--mid);border:1px solid var(--border2);border-radius:var(--rs);overflow:hidden;transition:border-color .2s}
+.pfx-wrap:focus-within{border-color:var(--gold)}
+.pfx{padding:10px 8px 10px 12px;font-size:12px;color:var(--muted);flex-shrink:0}
+.pfx-wrap input{border:none;background:transparent;padding:10px 12px 10px 2px;flex:1;font-size:14px}
+.pfx-wrap input:focus{outline:none}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border:none;border-radius:var(--rs);cursor:pointer;transition:all .15s;user-select:none;-webkit-user-select:none}
+.btn:active{transform:scale(0.97)}
+.btn-gold{background:var(--gold);color:#080808;padding:12px 18px}
+.btn-gold:hover{background:#d4b455}
+.btn-gold:disabled{background:var(--mid);color:var(--muted);cursor:default;transform:none}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2);padding:7px 11px;font-size:9px}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-outline:disabled{opacity:.25;cursor:default}
+.btn-sent{background:var(--ok);color:var(--ok-text);padding:7px 11px;font-size:9px;cursor:default}
+.btn-full{width:100%;padding:13px;font-size:11px}
+.btn-danger{background:transparent;color:#f07070;border:1px solid #3a1010;padding:7px 11px;font-size:9px}
+.btn-danger:hover{background:#1a0808}
+
+/* ALERTS */
+.alert{border-radius:var(--rs);padding:10px 13px;font-size:12px;margin-bottom:10px;display:none;line-height:1.5}
+.alert.show{display:block}
+.alert-ok{background:#101e08;color:var(--ok-text);border:1px solid #1e3a0e}
+.alert-err{background:var(--err);color:var(--err-text);border:1px solid #3a1010}
+.alert-info{background:#0a1520;color:#60a0e0;border:1px solid #152840}
+
+/* SPINNER */
+.spinner{width:11px;height:11px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* CLIENT LIST */
+.client-list{display:flex;flex-direction:column;gap:8px}
+.crow{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .2s}
+.crow:hover{border-color:var(--border2)}
+.crow-top{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--border)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--mid);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0;text-transform:uppercase}
+.cinfo{flex:1;min-width:0}
+.cname{font-size:13px;font-weight:600;margin-bottom:1px}
+.cemail{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdel{width:24px;height:24px;border:1px solid var(--border2);border-radius:5px;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .15s}
+.cdel:hover{border-color:#5a1515;color:#f07070;background:#1a0808}
+.fsteps{display:grid;grid-template-columns:repeat(3,1fr)}
+.fstep{padding:10px 8px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.fstep:last-child{border-right:none}
+.fstep-hdr{display:flex;align-items:center;justify-content:space-between}
+.fstep-num{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .3s}
+.dot.done{background:var(--gold)}
+.ftime{font-size:9px;color:var(--muted);min-height:12px}
+.ftime.done{color:var(--ok-text)}
+.empty{text-align:center;padding:48px 20px;color:var(--muted)}
+
+/* PREVIEW */
+.prev-shell{border-radius:var(--rs);overflow:hidden;border:1px solid var(--border);margin-bottom:10px}
+.subj-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.subj-label{font-size:10px;color:var(--muted);white-space:nowrap}
+.subj-val{font-size:11px;color:var(--text);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* CAMPAIGN TABS */
+.camp-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.ctab{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:9px 10px;cursor:pointer;transition:all .2s;user-select:none;-webkit-user-select:none;text-align:center;flex:1;min-width:0}
+.ctab.active{border-color:var(--gold);background:rgba(200,168,75,0.07)}
+.ctab-icon{font-size:16px;margin-bottom:3px;opacity:.75}
+.ctab-title{font-size:10px;font-weight:700;color:var(--text);line-height:1.3}
+.ctab.active .ctab-title{color:var(--gold)}
+.ctab-sub{font-size:9px;color:var(--muted);margin-top:2px;line-height:1.3}
+
+/* EMAIL LIBRE - tags */
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{background:var(--mid);border:1px solid var(--border2);border-radius:4px;padding:3px 8px;font-size:10px;color:var(--muted);cursor:pointer;transition:all .15s;user-select:none}
+.tag:hover{border-color:var(--gold);color:var(--gold)}
+
+/* PROGRESS */
+.prog-track{height:3px;background:var(--mid);border-radius:2px;margin:8px 0 5px;overflow:hidden}
+.prog-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
+
+/* UPLOAD */
+.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:20px 14px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--gold);background:var(--gold-dim)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.img-thumb{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:1;background:var(--mid)}
+.img-thumb img{width:100%;height:100%;object-fit:cover}
+.img-thumb-del{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.75);border:none;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+.divider{height:1px;background:var(--border);margin:14px 0}
+.foot{text-align:center;margin-top:32px;font-size:9px;color:var(--muted2);letter-spacing:.5px}
+.row{display:flex;gap:8px;align-items:center}
+.mt8{margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <img src="https://cdn.shopify.com/s/files/1/0514/3704/3883/files/logoweb_negro_f4ee7b19-7721-46b0-8453-c64e507b4a16.png?v=1746571715" alt="Solar" onerror="this.style.display='none';document.getElementById('hdrFb').style.display='block'">
+  <div id="hdrFb" class="hdr-fb">Solar Tattoo</div>
+  <div class="hdr-right">
+    <div class="pill" id="hdrCount">0 clientes</div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="ntab active" onclick="goPage('lista')">Clientes</div>
+  <div class="ntab" onclick="goPage('nuevo')">+ Añadir</div>
+  <div class="ntab" onclick="goPage('email')">Email</div>
+  <div class="ntab" onclick="goPage('marketing')">Campaña</div>
+  <div class="ntab" id="tabPreview" style="display:none" onclick="goPage('preview')">Preview</div>
+</div>
+
+<!-- ═══ LISTA ═══ -->
+<div class="page active" id="page-lista">
+  <div id="aLista" class="alert"></div>
+  <div id="loadingBar" style="text-align:center;padding:28px;color:var(--muted);font-size:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span class="spinner"></span> Cargando clientes...</div>
+  <div id="clientList" class="client-list" style="display:none"></div>
+  <div class="foot">Solar Tattoo Supplies · Palma de Mallorca</div>
+</div>
+
+<!-- ═══ NUEVO ═══ -->
+<div class="page" id="page-nuevo">
+  <div id="aNuevo" class="alert"></div>
+  <div class="slabel">Nuevo cliente</div>
+  <div class="card">
+    <div class="field"><label>Nombre</label><input id="nName" type="text" placeholder="Carlos" autocomplete="given-name"/></div>
+    <div class="field"><label>Email</label><input id="nEmail" type="email" placeholder="carlos@estudio.com" autocomplete="email"/></div>
+    <div class="field"><label>Enlace al carrito abandonado</label><input id="nLink" type="url" placeholder="https://solartattoosupplies.com/cart/..."/></div>
+  </div>
+  <button class="btn btn-gold btn-full" id="btnAddClient" onclick="addClient()">Añadir cliente</button>
+  <div class="foot" style="margin-top:16px">Los datos se sincronizan con Google Sheets automáticamente.</div>
+</div>
+
+<!-- ═══ EMAIL LIBRE ═══ -->
+<div class="page" id="page-email">
+  <div id="aEmail" class="alert"></div>
+
+  <div class="slabel">Destinatario</div>
+  <div class="card">
+    <div class="field"><label>Nombre</label><input id="eName" type="text" placeholder="Carlos"/></div>
+    <div class="field"><label>Email</label><input id="eEmail" type="email" placeholder="carlos@estudio.com"/></div>
+  </div>
+
+  <div class="slabel">Contenido del email</div>
+  <div class="card">
+    <div class="field">
+      <label>Tipo de email</label>
+      <select id="eTipo" onchange="applyTemplate()">
+        <option value="">— Email en blanco —</option>
+        <option value="pedido">Confirmación de pedido</option>
+        <option value="envio">Notificación de envío</option>
+        <option value="reembolso">Reembolso por rotura de stock</option>
+        <option value="bienvenida">Bienvenida a nuevo cliente</option>
+        <option value="seguimiento">Seguimiento post-compra</option>
+        <option value="oferta">Oferta personalizada</option>
+        <option value="disculpa">Disculpa / incidencia</option>
+      </select>
+    </div>
+    <div class="field"><label>Asunto</label><input id="eSubject" type="text" placeholder="Escribe el asunto..."/></div>
+    <div class="field">
+      <label>Cuerpo del mensaje</label>
+      <textarea id="eBody" rows="8" placeholder="Escribe aquí el mensaje..."></textarea>
+      <div class="tag-row" id="eTags"></div>
+    </div>
+    <div class="field" id="eAmountField" style="display:none">
+      <label>Importe (€)</label>
+      <div class="pfx-wrap"><span class="pfx">€</span><input id="eAmount" type="number" placeholder="24.90" step="0.01" min="0"/></div>
+    </div>
+    <div class="field" id="eOrderField" style="display:none">
+      <label>Número de pedido</label>
+      <input id="eOrder" type="text" placeholder="#1042"/>
+    </div>
+    <div class="field" id="eTrackingField" style="display:none">
+      <label>Número de seguimiento / transportista</label>
+      <input id="eTracking" type="text" placeholder="GLS — 1Z999AA10123456784"/>
+    </div>
+  </div>
+
+  <div class="slabel">Imagen adjunta (opcional)</div>
+  <div class="card">
+    <div class="upload-zone" id="eUploadZone">
+      <input type="file" accept="image/*" onchange="handleEmailImage(this.files)" id="eImgInput"/>
+      <div style="font-size:18px;opacity:.35;margin-bottom:5px">▣</div>
+      <div style="font-size:11px;color:var(--muted)">Pulsa para añadir una imagen<br><span style="font-size:10px;opacity:.6">JPG, PNG — 1 imagen</span></div>
+    </div>
+    <div id="eImgPreview" style="margin-top:8px"></div>
+  </div>
+
+  <button class="btn btn-gold btn-full" onclick="previewFreeEmail()" id="btnPreviewFree">Previsualizar email</button>
+  <div class="foot" style="margin-top:16px">El email se enviará desde soporte@solartattoosupplies.com</div>
+</div>
+
+<!-- ═══ MARKETING ═══ -->
+<div class="page" id="page-marketing">
+  <div id="aMarketing" class="alert"></div>
+
+  <div class="slabel">Tipo de campaña masiva</div>
+  <div class="camp-tabs">
+    <div class="ctab active" id="ctab-free" onclick="selectCamp('free')">
+      <div class="ctab-icon">◈</div>
+      <div class="ctab-title">Código</div>
+      <div class="ctab-sub">Descuento a todos</div>
+    </div>
+    <div class="ctab" id="ctab-news" onclick="selectCamp('news')">
+      <div class="ctab-icon">◉</div>
+      <div class="ctab-title">Novedad</div>
+      <div class="ctab-sub">Nuevo producto</div>
+    </div>
+    <div class="ctab" id="ctab-promo" onclick="selectCamp('promo')">
+      <div class="ctab-icon">◐</div>
+      <div class="ctab-title">Promoción</div>
+      <div class="ctab-sub">Oferta limitada</div>
+    </div>
+    <div class="ctab" id="ctab-custom" onclick="selectCamp('custom')">
+      <div class="ctab-icon">✦</div>
+      <div class="ctab-title">Libre</div>
+      <div class="ctab-sub">Tu mensaje</div>
+    </div>
+  </div>
+
+  <!-- CÓDIGO DESCUENTO -->
+  <div id="campFree">
+    <div class="card">
+      <div class="field"><label>Código de descuento</label><input id="fCode" type="text" placeholder="FREEDELIVERY" value="FREEDELIVERY" oninput="this.value=this.value.toUpperCase();document.getElementById('prevCode').textContent=this.value||'CÓDIGO'"/></div>
+      <div class="field"><label>Descripción del código</label><input id="fDesc" type="text" value="Envío gratis · Sin mínimo · Tiempo limitado" oninput="document.getElementById('prevDesc').textContent=this.value"/></div>
+      <div class="field"><label>Mensaje para los clientes</label><textarea id="fMsg">Esta semana tenemos una novedad especial para ti: envío completamente gratis en tu próximo pedido, sin mínimo de compra. Solo usa el código al finalizar tu pedido.</textarea></div>
+    </div>
+    <div class="card-sm" style="background:var(--mid)">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">Preview del código</div>
+      <div style="background:#0a0a0a;border-radius:5px;padding:12px;text-align:center">
+        <div style="font-size:8px;color:#c8a84b;letter-spacing:3px;text-transform:uppercase;margin-bottom:7px">Tu código exclusivo</div>
+        <div id="prevCode" style="font-size:16px;font-weight:900;color:#fff;letter-spacing:5px;border:1.5px solid #c8a84b;display:inline-block;padding:7px 14px;border-radius:3px">FREEDELIVERY</div>
+        <div id="prevDesc" style="font-size:9px;color:#c8a84b;margin-top:7px">Envío gratis · Sin mínimo · Tiempo limitado</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOVEDAD -->
+  <div id="campNews" style="display:none">
+    <div class="card">
+      <div class="field"><label>Nombre del producto / novedad</label><input id="nwProduct" type="text" placeholder="Cartuchos Élite Infini — ya disponibles"/></div>
+      <div class="field"><label>Descripción</label><textarea id="nwDesc" placeholder="Describe brevemente el producto o novedad que quieres anunciar..."></textarea></div>
+      <div class="field"><label>URL del producto (opcional)</label><input id="nwUrl" type="url" placeholder="https://solartattoosupplies.com/products/..."/></div>
+    </div>
+    <div class="slabel">Imagen del producto</div>
+    <div class="card">
+      <div class="upload-zone" id="nwUploadZone">
+        <input type="file" accept="image/*" onchange="handleNwImage(this.files)" id="nwImgInput"/>
+        <div style="font-size:18px;opacity:.35;margin-bottom:5px">▣</div>
+        <div style="font-size:11px;color:var(--muted)">Añade una imagen del producto</div>
+      </div>
+      <div id="nwImgPreview" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <!-- PROMOCIÓN -->
+  <div id="campPromo" style="display:none">
+    <div class="card">
+      <div class="field"><label>Título de la promoción</label><input id="prTitle" type="text" placeholder="Liquidación de fin de temporada — hasta 30% dto."/></div>
+      <div class="field"><label>Descripción</label><textarea id="prDesc" placeholder="Detalla la oferta: productos incluidos, duración, condiciones..."></textarea></div>
+      <div class="field"><label>Código de descuento (si aplica)</label><input id="prCode" type="text" placeholder="PROMO30" oninput="this.value=this.value.toUpperCase()"/></div>
+      <div class="field"><label>Fecha límite</label><input id="prDate" type="text" placeholder="Hasta el 30 de abril"/></div>
+    </div>
+    <div class="slabel">Imagen de la promoción</div>
+    <div class="card">
+      <div class="upload-zone" id="prUploadZone">
+        <input type="file" accept="image/*" multiple onchange="handlePromoImages(this.files)" id="prImgInput"/>
+        <div style="font-size:18px;opacity:.35;margin-bottom:5px">▣</div>
+        <div style="font-size:11px;color:var(--muted)">Añade hasta 3 imágenes</div>
+      </div>
+      <div class="img-grid" id="prImgGrid"></div>
+    </div>
+  </div>
+
+  <!-- LIBRE -->
+  <div id="campCustom" style="display:none">
+    <div class="card">
+      <div class="field"><label>Asunto</label><input id="mSubject" type="text" placeholder="Novedades Solar Tattoo Supplies"/></div>
+      <div class="field"><label>Mensaje</label><textarea id="mBody" placeholder="Escribe el mensaje para todos tus clientes..."></textarea></div>
+    </div>
+    <div class="slabel">Imágenes (opcional)</div>
+    <div class="card">
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" accept="image/*" multiple onchange="handleImages(this.files)" id="imgInput"/>
+        <div style="font-size:18px;opacity:.35;margin-bottom:5px">▣</div>
+        <div style="font-size:11px;color:var(--muted)">Hasta 3 imágenes</div>
+      </div>
+      <div class="img-grid" id="imgGrid"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="font-size:12px">Destinatarios</div>
+    <div class="pill" id="mCount">0 contactos</div>
+  </div>
+  <button class="btn btn-gold btn-full" onclick="previewCampaign()" id="btnPrevCampaign">Previsualizar campaña</button>
+  <div id="campProgress" style="display:none;margin-top:10px">
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px" id="progTitle">Enviando...</div>
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      <div style="font-size:11px;color:var(--muted)" id="progText">0 de 0</div>
+    </div>
+  </div>
+  <div class="foot">Solar Tattoo Supplies · Palma de Mallorca</div>
+</div>
+
+<!-- ═══ PREVIEW ═══ -->
+<div class="page" id="page-preview">
+  <div id="aPreview" class="alert"></div>
+  <div id="prevSpin" style="display:none;text-align:center;padding:28px;color:var(--gold);font-size:12px">
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px"><span class="spinner"></span> Preparando...</div>
+  </div>
+  <div id="prevContent" style="display:none">
+    <div class="slabel" id="prevLabel"></div>
+    <div class="subj-row"><span class="subj-label">Asunto:</span><span class="subj-val" id="prevSubject"></span></div>
+    <div class="prev-shell"><div id="prevHtml"></div></div>
+    <button class="btn btn-gold btn-full" onclick="confirmSend()" id="btnConfirm">Confirmar y enviar</button>
+    <div class="mt8" style="text-align:center"><button class="btn btn-outline" onclick="cancelPreview()" style="padding:8px 18px">Cancelar</button></div>
+  </div>
+  <div id="prevCampaign" style="display:none">
+    <div class="slabel" id="prevCampLabel"></div>
+    <div class="subj-row"><span class="subj-label">Asunto:</span><span class="subj-val" id="prevCampSubject"></span></div>
+    <div class="prev-shell"><div id="prevCampHtml"></div></div>
+    <div class="card mt8">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Se enviará a <strong id="prevCampCount" style="color:var(--text)">0</strong> contactos</div>
+      <button class="btn btn-gold btn-full" onclick="sendCampaign()" id="btnSendCamp">Enviar a todos ahora</button>
+    </div>
+    <div class="mt8" style="text-align:center"><button class="btn btn-outline" onclick="cancelPreview()" style="padding:8px 18px">Cancelar</button></div>
+  </div>
+  <div id="prevCart" style="display:none">
+    <div class="slabel" id="prevCartLabel"></div>
+    <div class="subj-row"><span class="subj-label">Asunto:</span><span class="subj-val" id="prevCartSubject"></span></div>
+    <div class="prev-shell"><div id="prevCartHtml"></div></div>
+    <button class="btn btn-gold btn-full" onclick="confirmCartSend()" id="btnCartConfirm">Confirmar y enviar</button>
+    <div class="mt8" style="text-align:center"><button class="btn btn-outline" onclick="cancelPreview()" style="padding:8px 18px">Cancelar</button></div>
+  </div>
+  <div class="foot" style="margin-top:20px">Solar Tattoo Supplies · Palma de Mallorca</div>
+</div>
+
+<script>
+const SVC = 'service_xsjgh5m';
+const TPL = 'template_sw9buax';
+const PKEY = 'Fi_NO7kMgrmOP1mbe';
+const GS = 'https://script.google.com/macros/s/AKfycbwDKu5WggLnby7wPBmpfFwap2VOieZYqgE4sU6RZYo3qbI2g50tslqCOlznij6tudJA/exec';
+const LOGO = 'https://cdn.shopify.com/s/files/1/0514/3704/3883/files/logoweb_negro_f4ee7b19-7721-46b0-8453-c64e507b4a16.png?v=1746571715';
+
+emailjs.init(PKEY);
+
+let clients = [];
+let pendingAction = null;
+let pendingSubject = '';
+let pendingHtml = '';
+let campaignImages = [];
+let promoImgArr = [];
+let nwImage = null;
+let eImage = null;
+let campaignMode = false;
+let campaignSubject = '';
+let campaignHtml = '';
+let selectedCamp = 'free';
+let freeEmailPending = {};
+
+const LTAG = `<img src="${LOGO}" alt="Solar Tattoo Supplies" width="115" style="display:block;filter:invert(1) brightness(1.1);margin-bottom:20px" onerror="this.outerHTML='<div style=\\'font-family:Arial,sans-serif;font-size:11px;font-weight:900;letter-spacing:3px;color:#fff;text-transform:uppercase;margin-bottom:20px\\'>SOLAR TATTOO <span style=\\'color:#c8a84b\\'>SUPPLIES</span></div>'" />`;
+
+const TF = (bg) => `
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f2ed;border-top:1px solid #dedad5;border-collapse:collapse">
+  <tr>
+    <td width="33%" style="padding:11px 6px;text-align:center;border-right:1px solid #dedad5">
+      <div style="font-family:Arial,sans-serif;font-size:8px;font-weight:700;color:#0a0a0a;text-transform:uppercase;letter-spacing:.8px">Envío gratis</div>
+      <div style="font-family:Arial,sans-serif;font-size:8px;color:#888;margin-top:1px">desde 90€</div>
+    </td>
+    <td width="33%" style="padding:11px 6px;text-align:center;border-right:1px solid #dedad5">
+      <div style="font-family:Arial,sans-serif;font-size:8px;font-weight:700;color:#0a0a0a;text-transform:uppercase;letter-spacing:.8px">Calidad</div>
+      <div style="font-family:Arial,sans-serif;font-size:8px;color:#888;margin-top:1px">garantizada</div>
+    </td>
+    <td width="33%" style="padding:11px 6px;text-align:center">
+      <div style="font-family:Arial,sans-serif;font-size:8px;font-weight:700;color:#0a0a0a;text-transform:uppercase;letter-spacing:.8px">WhatsApp</div>
+      <div style="font-family:Arial,sans-serif;font-size:8px;color:#888;margin-top:1px">atención directa</div>
+    </td>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:${bg};border-collapse:collapse">
+  <tr>
+    <td style="padding:16px 28px;text-align:center">
+      <div style="font-family:Arial,sans-serif;font-size:9px;color:#555;line-height:1.8">
+        Solar Tattoo Supplies · Palma de Mallorca · España<br>
+        <a href="https://solartattoosupplies.com" style="color:#c8a84b;text-decoration:none">solartattoosupplies.com</a> ·
+        <a href="#" style="color:#555;text-decoration:underline;font-size:8px">Cancelar suscripción</a>
+      </div>
+    </td>
+  </tr>
+</table>`;
+
+const TEMPLATES = {
+  pedido: {
+    subj: 'Confirmación de tu pedido {{ORDER}} — Solar Tattoo Supplies',
+    body: 'Hola {{NAME}},\n\nHemos recibido correctamente tu pedido {{ORDER}}.\n\nGracias por confiar en Solar Tattoo Supplies.\n\nUn saludo,\nEquipo Solar'
+  },
+  envio: {
+    subj: 'Tu pedido {{ORDER}} ya está en camino',
+    body: 'Hola {{NAME}},\n\nTu pedido {{ORDER}} ha sido enviado.\n\nSeguimiento: {{TRACKING}}\n\nGracias por tu compra.\n\nEquipo Solar'
+  },
+  reembolso: {
+    subj: 'Reembolso procesado — Solar Tattoo Supplies',
+    body: 'Hola {{NAME}},\n\nHemos procesado tu reembolso por importe de {{IMPORTE}} €.\n\nLamentamos la incidencia.\n\nEquipo Solar'
+  },
+  bienvenida: {
+    subj: 'Bienvenido a Solar Tattoo Supplies',
+    body: 'Hola {{NAME}},\n\nGracias por unirte a Solar Tattoo Supplies.\n\nEstamos a tu disposición para cualquier cosa.\n\nEquipo Solar'
+  },
+  seguimiento: {
+    subj: '¿Qué tal fue tu pedido? — Solar Tattoo Supplies',
+    body: 'Hola {{NAME}},\n\nQueríamos saber qué tal fue tu experiencia con tu último pedido.\n\nGracias por confiar en nosotros.\n\nEquipo Solar'
+  },
+  oferta: {
+    subj: 'Oferta personalizada para ti — Solar Tattoo Supplies',
+    body: 'Hola {{NAME}},\n\nHemos preparado una oferta especial para ti.\n\nSi necesitas algo concreto, responde a este email.\n\nEquipo Solar'
+  },
+  disculpa: {
+    subj: 'Disculpa por la incidencia — Solar Tattoo Supplies',
+    body: 'Hola {{NAME}},\n\nQueríamos pedirte disculpas por la incidencia.\n\nEstamos revisándolo para darte una solución lo antes posible.\n\nEquipo Solar'
+  }
+};
+
+function withTimeout(promise, ms, label = 'Operación') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} agotó el tiempo de espera`)), ms))
+  ]);
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function nl2br(str) {
+  return escapeHtml(str).replace(/\n/g, '<br>');
+}
+
+function showAlert(k, msg, type) {
+  const el = document.getElementById('a' + k.charAt(0).toUpperCase() + k.slice(1));
+  if (!el) return;
+  el.innerHTML = msg;
+  el.className = 'alert show alert-' + type;
+  if (type !== 'info') {
+    setTimeout(() => { el.className = 'alert'; }, 5000);
+  }
+}
+
+function goPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + n).classList.add('active');
+  const idx = ['lista', 'nuevo', 'email', 'marketing', 'preview'].indexOf(n);
+  if (idx >= 0) document.querySelectorAll('.ntab')[idx].classList.add('active');
+}
+
+function cancelPreview() {
+  document.getElementById('tabPreview').style.display = 'none';
+  document.getElementById('prevContent').style.display = 'none';
+  document.getElementById('prevCampaign').style.display = 'none';
+  document.getElementById('prevCart').style.display = 'none';
+  document.getElementById('prevSpin').style.display = 'none';
+  goPage(campaignMode ? 'marketing' : 'email');
+  campaignMode = false;
+}
+
+function updateCounts() {
+  const n = clients.length;
+  document.getElementById('hdrCount').textContent = n + (n === 1 ? ' cliente' : ' clientes');
+  document.getElementById('mCount').textContent = n + ' contacto' + (n === 1 ? '' : 's');
+}
+
+function ago(ts) {
+  if (!ts) return '';
+  const d = Math.floor((Date.now() - ts) / 1000);
+  if (d < 60) return 'ahora';
+  if (d < 3600) return 'hace ' + Math.floor(d / 60) + 'min';
+  if (d < 86400) return 'hace ' + Math.floor(d / 3600) + 'h';
+  if (d < 172800) return 'ayer';
+  return 'hace ' + Math.floor(d / 86400) + 'd';
+}
+
+function validateImage(file, maxMB = 2) {
+  if (!file) throw new Error('Archivo no válido');
+  if (!file.type.startsWith('image/')) throw new Error('Solo se permiten imágenes');
+  if (file.size > maxMB * 1024 * 1024) throw new Error(`La imagen supera ${maxMB} MB`);
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    try {
+      validateImage(file);
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('No se pudo leer la imagen'));
+      reader.readAsDataURL(file);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+async function handleEmailImage(files) {
+  try {
+    if (!files || !files.length) return;
+    eImage = await readFileAsDataURL(files[0]);
+    document.getElementById('eImgPreview').innerHTML = `<div class="img-thumb" style="width:80px;height:80px"><img src="${eImage}"/><button class="img-thumb-del" onclick="removeEmailImage()">✕</button></div>`;
+    document.getElementById('eUploadZone').style.display = 'none';
+  } catch (err) {
+    showAlert('email', err.message, 'err');
+  } finally {
+    document.getElementById('eImgInput').value = '';
+  }
+}
+
+function removeEmailImage() {
+  eImage = null;
+  document.getElementById('eImgPreview').innerHTML = '';
+  document.getElementById('eUploadZone').style.display = 'block';
+}
+
+async function handleNwImage(files) {
+  try {
+    if (!files || !files.length) return;
+    nwImage = await readFileAsDataURL(files[0]);
+    document.getElementById('nwImgPreview').innerHTML = `<div class="img-thumb" style="width:80px;height:80px"><img src="${nwImage}"/><button class="img-thumb-del" onclick="removeNwImage()">✕</button></div>`;
+    document.getElementById('nwUploadZone').style.display = 'none';
+  } catch (err) {
+    showAlert('marketing', err.message, 'err');
+  } finally {
+    document.getElementById('nwImgInput').value = '';
+  }
+}
+
+function removeNwImage() {
+  nwImage = null;
+  document.getElementById('nwImgPreview').innerHTML = '';
+  document.getElementById('nwUploadZone').style.display = 'block';
+}
+
+async function handlePromoImages(files) {
+  try {
+    const rem = 3 - promoImgArr.length;
+    const toAdd = Array.from(files || []).slice(0, rem);
+    for (const file of toAdd) promoImgArr.push(await readFileAsDataURL(file));
+    renderPromoImgs();
+  } catch (err) {
+    showAlert('marketing', err.message, 'err');
+  } finally {
+    document.getElementById('prImgInput').value = '';
+  }
+}
+
+function renderPromoImgs() {
+  document.getElementById('prImgGrid').innerHTML = promoImgArr.map((src, i) => `<div class="img-thumb"><img src="${src}"/><button class="img-thumb-del" onclick="promoImgArr.splice(${i},1);renderPromoImgs()">✕</button></div>`).join('');
+  document.getElementById('prUploadZone').style.display = promoImgArr.length >= 3 ? 'none' : 'block';
+}
+
+async function handleImages(files) {
+  try {
+    const rem = 3 - campaignImages.length;
+    const toAdd = Array.from(files || []).slice(0, rem);
+    for (const file of toAdd) campaignImages.push(await readFileAsDataURL(file));
+    renderImgs();
+  } catch (err) {
+    showAlert('marketing', err.message, 'err');
+  } finally {
+    document.getElementById('imgInput').value = '';
+  }
+}
+
+function renderImgs() {
+  document.getElementById('imgGrid').innerHTML = campaignImages.map((src, i) => `<div class="img-thumb"><img src="${src}"/><button class="img-thumb-del" onclick="campaignImages.splice(${i},1);renderImgs()">✕</button></div>`).join('');
+  document.getElementById('uploadZone').style.display = campaignImages.length >= 3 ? 'none' : 'block';
+}
+
+function gsLoad() {
+  return new Promise((resolve) => {
+    const cbName = 'gs_cb_' + Date.now();
+    const script = document.createElement('script');
+
+    const cleanup = () => {
+      if (window[cbName]) delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    };
+
+    const timeoutId = setTimeout(() => {
+      cleanup();
+      clients = [];
+      renderList();
+      updateCounts();
+      document.getElementById('loadingBar').style.display = 'none';
+      document.getElementById('clientList').style.display = 'flex';
+      showAlert('lista', 'No se pudo cargar Google Sheets.', 'err');
+      resolve();
+    }, 12000);
+
+    window[cbName] = function (payload) {
+      clearTimeout(timeoutId);
+      cleanup();
+
+      try {
+        if (!payload || payload.ok !== true || !Array.isArray(payload.clients)) {
+          throw new Error(payload && payload.error ? payload.error : 'Respuesta inválida');
+        }
+
+        clients = payload.clients.map(c => ({
+          ...c,
+          flujos: (c.flujos || []).map(f => f ? new Date(f).getTime() : null),
+          recovered: !!c.recovered
+        }));
+      } catch (err) {
+        clients = [];
+        showAlert('lista', 'Error al leer clientes: ' + err.message, 'err');
+      }
+
+      renderList();
+      updateCounts();
+      document.getElementById('loadingBar').style.display = 'none';
+      document.getElementById('clientList').style.display = 'flex';
+      resolve();
+    };
+
+    script.onerror = function () {
+      clearTimeout(timeoutId);
+      cleanup();
+      clients = [];
+      renderList();
+      updateCounts();
+      document.getElementById('loadingBar').style.display = 'none';
+      document.getElementById('clientList').style.display = 'flex';
+      showAlert('lista', 'Error de conexión cargando datos.', 'err');
+      resolve();
+    };
+
+    script.src = GS + '?callback=' + cbName + '&t=' + Date.now();
+    document.head.appendChild(script);
+  });
+}
+
+async function gsPost(payload) {
+  return new Promise((resolve, reject) => {
+    try {
+      const iframeName = 'gs_iframe_' + Date.now();
+      const form = document.createElement('form');
+      const iframe = document.createElement('iframe');
+
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      form.style.display = 'none';
+      form.method = 'POST';
+      form.action = GS;
+      form.target = iframeName;
+
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'payload';
+      input.value = JSON.stringify(payload);
+
+      form.appendChild(input);
+      document.body.appendChild(iframe);
+      document.body.appendChild(form);
+
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error('Google Sheets tardó demasiado en responder'));
+      }, 12000);
+
+      const cleanup = () => {
+        clearTimeout(timer);
+        setTimeout(() => {
+          if (form.parentNode) form.parentNode.removeChild(form);
+          if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        }, 100);
+      };
+
+      iframe.onload = () => {
+        cleanup();
+        resolve({ ok: true });
+      };
+
+      form.submit();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+async function addClient() {
+  const name = document.getElementById('nName').value.trim();
+  const email = document.getElementById('nEmail').value.trim();
+  const link = document.getElementById('nLink').value.trim();
+
+  if (!name) return showAlert('nuevo', 'Pon el nombre', 'err');
+  if (!email) return showAlert('nuevo', 'Pon el email', 'err');
+
+  if (clients.find(c => String(c.email || '').toLowerCase() === email.toLowerCase())) {
+    return showAlert('nuevo', 'Email ya en el listado', 'err');
+  }
+
+  const btn = document.getElementById('btnAddClient');
+  const prev = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Guardando...';
+  btn.disabled = true;
+
+  try {
+    await gsPost({ action: 'addClient', id: Date.now(), name, email, link });
+    await gsLoad();
+
+    document.getElementById('nName').value = '';
+    document.getElementById('nEmail').value = '';
+    document.getElementById('nLink').value = '';
+    showAlert('nuevo', name + ' añadido', 'ok');
+    setTimeout(() => goPage('lista'), 800);
+  } catch (err) {
+    showAlert('nuevo', 'No se pudo guardar: ' + err.message, 'err');
+  } finally {
+    btn.innerHTML = prev;
+    btn.disabled = false;
+  }
+}
+
+async function deleteClient(id) {
+  const backup = [...clients];
+  clients = clients.filter(c => String(c.id) !== String(id));
+  renderList();
+  updateCounts();
+
+  try {
+    await gsPost({ action: 'deleteClient', id });
+  } catch (err) {
+    clients = backup;
+    renderList();
+    updateCounts();
+    showAlert('lista', 'No se pudo borrar: ' + err.message, 'err');
+  }
+}
+
+async function markRecovered(clientId, recovered = true) {
+  const client = clients.find(c => String(c.id) === String(clientId));
+  if (!client) return;
+
+  const prev = client.recovered;
+  client.recovered = recovered;
+  renderList();
+
+  try {
+    await gsPost({ action: 'markRecovered', id: clientId, recovered });
+  } catch (err) {
+    client.recovered = prev;
+    renderList();
+    showAlert('lista', 'No se pudo actualizar: ' + err.message, 'err');
+  }
+}
+
+function renderList() {
+  const el = document.getElementById('clientList');
+
+  if (!clients.length) {
+    el.innerHTML = `<div class="empty"><div style="font-size:28px;opacity:.25;margin-bottom:10px">◎</div><div style="font-size:12px;color:var(--muted);line-height:1.7">Aún no hay clientes.<br>Pulsa "+ Añadir" para empezar.</div></div>`;
+    return;
+  }
+
+  const labels = ['Recordatorio', 'Desc. 10%', 'Última'];
+
+  el.innerHTML = clients.map(c => {
+    const ini = String(c.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const next = c.flujos.findIndex(f => f === null);
+    const allDone = c.flujos.every(f => f !== null);
+    const isRecovered = c.recovered === true;
+
+    const steps = [0, 1, 2].map(i => {
+      const sent = c.flujos[i] !== null;
+      const isNext = i === next;
+
+      const btn = sent
+        ? `<span class="btn btn-sent" style="width:100%;justify-content:center;margin-top:2px;font-size:9px">✓ OK</span>`
+        : isNext
+          ? `<button class="btn btn-outline" onclick="initSend('${c.id}',${i})" style="width:100%;justify-content:center;margin-top:2px">Enviar</button>`
+          : `<button class="btn btn-outline" disabled style="width:100%;justify-content:center;margin-top:2px;opacity:.2">Enviar</button>`;
+
+      return `<div class="fstep"><div class="fstep-hdr"><span class="fstep-num">E${i + 1}</span><span class="dot ${sent ? 'done' : ''}"></span></div><div style="font-size:9px;color:${sent ? 'var(--text)' : 'var(--muted)'};font-weight:${sent ? 600 : 400};margin-bottom:1px">${labels[i]}</div><div class="ftime ${sent ? 'done' : ''}">${sent ? ago(c.flujos[i]) : 'pendiente'}</div>${btn}</div>`;
+    }).join('');
+
+    return `<div class="crow"><div class="crow-top"><div class="avatar">${ini || 'C'}</div><div class="cinfo"><div class="cname">${escapeHtml(c.name || '')}</div><div class="cemail">${escapeHtml(c.email || '')}</div></div><button class="cdel" onclick="deleteClient('${c.id}')" title="Eliminar">✕</button></div><div class="fsteps">${steps}</div><div style="padding:10px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div style="font-size:10px;color:${isRecovered ? 'var(--ok-text)' : 'var(--muted)'}">${isRecovered ? '✔ Recuperado' : allDone ? 'Secuencia completada' : 'En seguimiento'}</div><button class="btn ${isRecovered ? 'btn-sent' : 'btn-outline'}" onclick="markRecovered('${c.id}', ${!isRecovered})">${isRecovered ? 'Recuperado' : 'Marcar recuperado'}</button></div></div>`;
+  }).join('');
+}
+
+function getCartTexts(name, flujoIdx) {
+  const flows = [
+    {
+      subject: `${name}, olvidaste algo en tu carrito`,
+      lines: [
+        `Hola ${name},`,
+        `Hemos visto que dejaste productos en tu carrito y queríamos recordártelo por si todavía los necesitas.`,
+        `Tu selección sigue disponible por ahora.`,
+        `Puedes recuperar tu carrito desde el botón de abajo.`
+      ]
+    },
+    {
+      subject: `${name}, tienes un 10% en tu carrito`,
+      lines: [
+        `Hola ${name},`,
+        `Queríamos ponértelo un poco más fácil.`,
+        `Si completas tu pedido ahora, puedes aprovechar un 10% de descuento.`,
+        `Recupera tu carrito desde el botón de abajo.`
+      ]
+    },
+    {
+      subject: `${name}, último aviso sobre tu carrito`,
+      lines: [
+        `Hola ${name},`,
+        `Este es el último recordatorio sobre los productos que dejaste en tu carrito.`,
+        `Si todavía te interesan, este es buen momento para terminar el pedido.`,
+        `Te dejamos el acceso directo aquí abajo.`
+      ]
+    }
+  ];
+  return flows[flujoIdx] || flows[0];
+}
+
+function buildCartEmail(name, lines, link, flujoIdx) {
+  const ctaText = flujoIdx === 1 ? 'Recuperar carrito con 10%' : 'Recuperar carrito';
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="background:#efebe5;padding:24px 12px;border-collapse:collapse"><tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;background:#ffffff;border-collapse:collapse;border:1px solid #ddd"><tr><td style="padding:28px 28px 10px">${LTAG}<div style="font-family:Arial,sans-serif;font-size:24px;line-height:1.25;font-weight:700;color:#111;margin-bottom:16px">${escapeHtml(lines[1] || 'Tu carrito te está esperando')}</div><div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#333">${lines.map(line => `<div style="margin-bottom:12px">${escapeHtml(line)}</div>`).join('')}</div><div style="margin:28px 0 18px"><a href="${link || '#'}" style="display:inline-block;background:#c8a84b;color:#080808;text-decoration:none;padding:14px 22px;font-family:Arial,sans-serif;font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-radius:6px">${escapeHtml(ctaText)}</a></div></td></tr><tr><td>${TF('#ffffff')}</td></tr></table></td></tr></table>`;
+}
+
+function initSend(clientId, flujoIdx) {
+  const client = clients.find(c => String(c.id) === String(clientId));
+  if (!client) return;
+
+  pendingAction = { clientId, flujoIdx };
+  campaignMode = false;
+
+  document.getElementById('tabPreview').style.display = 'block';
+  goPage('preview');
+  document.getElementById('prevSpin').style.display = 'block';
+  document.getElementById('prevContent').style.display = 'none';
+  document.getElementById('prevCampaign').style.display = 'none';
+  document.getElementById('prevCart').style.display = 'none';
+  document.getElementById('aPreview').className = 'alert';
+
+  const texts = getCartTexts(client.name, flujoIdx);
+  pendingSubject = texts.subject;
+  pendingHtml = buildCartEmail(client.name, texts.lines, client.link, flujoIdx);
+
+  setTimeout(() => {
+    document.getElementById('prevCartLabel').textContent = `Email ${flujoIdx + 1} para ${client.name}`;
+    document.getElementById('prevCartSubject').textContent = pendingSubject;
+    document.getElementById('prevCartHtml').innerHTML = pendingHtml;
+    document.getElementById('prevSpin').style.display = 'none';
+    document.getElementById('prevCart').style.display = 'block';
+    const b = document.getElementById('btnCartConfirm');
+    b.innerHTML = `Confirmar y enviar email ${flujoIdx + 1}`;
+    b.disabled = false;
+    b.className = 'btn btn-gold btn-full';
+  }, 250);
+}
+
+async function confirmCartSend() {
+  if (!pendingAction) return;
+  const { clientId, flujoIdx } = pendingAction;
+  const client = clients.find(c => String(c.id) === String(clientId));
+  if (!client) return;
+
+  const btn = document.getElementById('btnCartConfirm');
+  btn.innerHTML = '<span class="spinner"></span> Enviando...';
+  btn.disabled = true;
+
+  try {
+    await withTimeout(emailjs.send(SVC, TPL, {
+      to_email: client.email,
+      to_name: client.name,
+      subject: pendingSubject,
+      html_body: pendingHtml
+    }), 20000, 'Email');
+
+    client.flujos[flujoIdx] = Date.now();
+    await gsPost({ action: 'updateFlujo', id: client.id, flujoIndex: flujoIdx });
+    renderList();
+    showAlert('preview', `Email enviado a ${client.email}`, 'ok');
+    btn.innerHTML = 'Enviado ✓';
+    btn.className = 'btn btn-sent btn-full';
+
+    setTimeout(() => {
+      document.getElementById('tabPreview').style.display = 'none';
+      goPage('lista');
+      pendingAction = null;
+    }, 1400);
+  } catch (err) {
+    showAlert('preview', 'Error: ' + (err.text || err.message || 'revisa la conexión'), 'err');
+    btn.innerHTML = `Confirmar y enviar email ${flujoIdx + 1}`;
+    btn.disabled = false;
+    btn.className = 'btn btn-gold btn-full';
+  }
+}
+
+function applyTemplate() {
+  const key = document.getElementById('eTipo').value;
+  const t = TEMPLATES[key];
+
+  document.getElementById('eAmountField').style.display = key === 'reembolso' ? 'block' : 'none';
+  document.getElementById('eOrderField').style.display = ['pedido', 'envio'].includes(key) ? 'block' : 'none';
+  document.getElementById('eTrackingField').style.display = key === 'envio' ? 'block' : 'none';
+
+  if (!t) {
+    document.getElementById('eSubject').value = '';
+    document.getElementById('eBody').value = '';
+    document.getElementById('eTags').innerHTML = '';
+    return;
+  }
+
+  document.getElementById('eSubject').value = t.subj;
+  document.getElementById('eBody').value = t.body.replace(/\{\{NAME\}\}/g, '{{NAME}}');
+  const tags = ['{{NAME}}', '{{ORDER}}', '{{TRACKING}}', '{{IMPORTE}}'];
+  document.getElementById('eTags').innerHTML = tags.map(tag => `<span class="tag" onclick="insertTag('eBody','${tag}')">${tag}</span>`).join('');
+}
+
+function insertTag(fieldId, tag) {
+  const el = document.getElementById(fieldId);
+  const s = el.selectionStart;
+  const e = el.selectionEnd;
+  el.value = el.value.slice(0, s) + tag + el.value.slice(e);
+  el.setSelectionRange(s + tag.length, s + tag.length);
+  el.focus();
+}
+
+function buildBasicEmail(name, subject, body, imageData = null) {
+  const imgHtml = imageData ? `<div style="margin:0 0 18px"><img src="${imageData}" alt="" style="display:block;width:100%;max-width:520px;height:auto;border:0;border-radius:8px" /></div>` : '';
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="background:#efebe5;padding:24px 12px;border-collapse:collapse"><tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;background:#ffffff;border-collapse:collapse;border:1px solid #ddd"><tr><td style="padding:28px 28px 10px">${LTAG}${imgHtml}<div style="font-family:Arial,sans-serif;font-size:22px;line-height:1.25;font-weight:700;color:#111;margin-bottom:16px">${escapeHtml(subject)}</div><div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#333">${nl2br(body.replace(/\{\{NAME\}\}/g, name))}</div></td></tr><tr><td>${TF('#ffffff')}</td></tr></table></td></tr></table>`;
+}
+
+function previewFreeEmail() {
+  const name = document.getElementById('eName').value.trim();
+  const email = document.getElementById('eEmail').value.trim();
+  let subject = document.getElementById('eSubject').value.trim();
+  let body = document.getElementById('eBody').value.trim();
+
+  if (!name) return showAlert('email', 'Pon el nombre', 'err');
+  if (!email) return showAlert('email', 'Pon el email', 'err');
+  if (!subject) return showAlert('email', 'Pon el asunto', 'err');
+  if (!body) return showAlert('email', 'Escribe el mensaje', 'err');
+
+  const amount = document.getElementById('eAmount').value.trim();
+  const order = document.getElementById('eOrder').value.trim();
+  const tracking = document.getElementById('eTracking').value.trim();
+
+  subject = subject.replace(/\{\{NAME\}\}/g, name);
+  body = body.replace(/\{\{NAME\}\}/g, name);
+
+  if (amount) {
+    const amt = Number(amount).toFixed(2);
+    body = body.replace(/\{\{IMPORTE\}\}/g, amt);
+    subject = subject.replace(/\{\{IMPORTE\}\}/g, amt);
+  }
+  if (order) {
+    body = body.replace(/\{\{ORDER\}\}/g, order);
+    subject = subject.replace(/\{\{ORDER\}\}/g, order);
+  }
+  if (tracking) {
+    body = body.replace(/\{\{TRACKING\}\}/g, tracking);
+    subject = subject.replace(/\{\{TRACKING\}\}/g, tracking);
+  }
+
+  freeEmailPending = {
+    name,
+    email,
+    subject,
+    html: buildBasicEmail(name, subject, body, eImage)
+  };
+
+  campaignMode = false;
+  document.getElementById('tabPreview').style.display = 'block';
+  goPage('preview');
+  document.getElementById('prevLabel').textContent = `Email para ${name}`;
+  document.getElementById('prevSubject').textContent = subject;
+  document.getElementById('prevHtml').innerHTML = freeEmailPending.html;
+  document.getElementById('prevContent').style.display = 'block';
+  document.getElementById('prevCampaign').style.display = 'none';
+  document.getElementById('prevCart').style.display = 'none';
+}
+
+async function confirmSend() {
+  if (!freeEmailPending || !freeEmailPending.email) return;
+
+  const btn = document.getElementById('btnConfirm');
+  const original = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span> Enviando...';
+  btn.disabled = true;
+
+  try {
+    await withTimeout(emailjs.send(SVC, TPL, {
+      to_email: freeEmailPending.email,
+      to_name: freeEmailPending.name,
+      subject: freeEmailPending.subject,
+      html_body: freeEmailPending.html
+    }), 20000, 'Email');
+
+    showAlert('preview', `Email enviado a ${freeEmailPending.email}`, 'ok');
+    btn.innerHTML = 'Enviado ✓';
+    btn.className = 'btn btn-sent btn-full';
+
+    setTimeout(() => {
+      document.getElementById('tabPreview').style.display = 'none';
+      goPage('email');
+    }, 1200);
+  } catch (err) {
+    showAlert('preview', 'Error: ' + (err.text || err.message || 'revisa la conexión'), 'err');
+    btn.innerHTML = original;
+    btn.disabled = false;
+  }
+}
+
+function selectCamp(mode) {
+  selectedCamp = mode;
+  ['free', 'news', 'promo', 'custom'].forEach(k => {
+    const tab = document.getElementById('ctab-' + k);
+    if (tab) tab.classList.toggle('active', k === mode);
+  });
+  document.getElementById('campFree').style.display = mode === 'free' ? 'block' : 'none';
+  document.getElementById('campNews').style.display = mode === 'news' ? 'block' : 'none';
+  document.getElementById('campPromo').style.display = mode === 'promo' ? 'block' : 'none';
+  document.getElementById('campCustom').style.display = mode === 'custom' ? 'block' : 'none';
+}
+
+function buildCampaignEmail(subject, body, images = []) {
+  const imgs = (images || []).map(src => `<div style="margin:0 0 14px"><img src="${src}" alt="" style="display:block;width:100%;height:auto;border:0;border-radius:8px" /></div>`).join('');
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="background:#efebe5;padding:24px 12px;border-collapse:collapse"><tr><td align="center"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;background:#ffffff;border-collapse:collapse;border:1px solid #ddd"><tr><td style="padding:28px 28px 10px">${LTAG}${imgs}<div style="font-family:Arial,sans-serif;font-size:24px;line-height:1.25;font-weight:700;color:#111;margin-bottom:16px">${escapeHtml(subject)}</div><div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#333">${nl2br(body)}</div></td></tr><tr><td>${TF('#ffffff')}</td></tr></table></td></tr></table>`;
+}
+
+function previewCampaign() {
+  if (!clients.length) return showAlert('marketing', 'No hay contactos para enviar', 'err');
+
+  let subject = '';
+  let body = '';
+  let images = [];
+
+  if (selectedCamp === 'free') {
+    const code = document.getElementById('fCode').value.trim();
+    const desc = document.getElementById('fDesc').value.trim();
+    const msg = document.getElementById('fMsg').value.trim();
+    if (!code || !msg) return showAlert('marketing', 'Completa el código y el mensaje', 'err');
+    subject = `Código exclusivo para ti: ${code}`;
+    body = `${msg}\n\nCódigo: ${code}\n${desc}`;
+  }
+
+  if (selectedCamp === 'news') {
+    const product = document.getElementById('nwProduct').value.trim();
+    const desc = document.getElementById('nwDesc').value.trim();
+    const url = document.getElementById('nwUrl').value.trim();
+    if (!product || !desc) return showAlert('marketing', 'Completa nombre y descripción', 'err');
+    subject = `Novedad en Solar: ${product}`;
+    body = `${desc}${url ? `\n\nVer producto: ${url}` : ''}`;
+    images = nwImage ? [nwImage] : [];
+  }
+
+  if (selectedCamp === 'promo') {
+    const title = document.getElementById('prTitle').value.trim();
+    const desc = document.getElementById('prDesc').value.trim();
+    const code = document.getElementById('prCode').value.trim();
+    const date = document.getElementById('prDate').value.trim();
+    if (!title || !desc) return showAlert('marketing', 'Completa título y descripción', 'err');
+    subject = title;
+    body = `${desc}${code ? `\n\nCódigo: ${code}` : ''}${date ? `\n\nVálido: ${date}` : ''}`;
+    images = [...promoImgArr];
+  }
+
+  if (selectedCamp === 'custom') {
+    subject = document.getElementById('mSubject').value.trim();
+    body = document.getElementById('mBody').value.trim();
+    images = [...campaignImages];
+    if (!subject || !body) return showAlert('marketing', 'Completa asunto y mensaje', 'err');
+  }
+
+  campaignSubject = subject;
+  campaignHtml = buildCampaignEmail(subject, body, images);
+  campaignMode = true;
+
+  document.getElementById('tabPreview').style.display = 'block';
+  goPage('preview');
+  document.getElementById('prevCampLabel').textContent = 'Campaña masiva';
+  document.getElementById('prevCampSubject').textContent = subject;
+  document.getElementById('prevCampHtml').innerHTML = campaignHtml;
+  document.getElementById('prevCampCount').textContent = String(clients.length);
+  document.getElementById('prevCampaign').style.display = 'block';
+  document.getElementById('prevContent').style.display = 'none';
+  document.getElementById('prevCart').style.display = 'none';
+}
+
+async function sendCampaign() {
+  if (!clients.length) return;
+
+  const btn = document.getElementById('btnSendCamp');
+  btn.innerHTML = '<span class="spinner"></span> Enviando...';
+  btn.disabled = true;
+
+  document.getElementById('campProgress').style.display = 'block';
+  document.getElementById('progTitle').textContent = 'Enviando campaña...';
+
+  let sent = 0;
+  let failed = 0;
+
+  for (let i = 0; i < clients.length; i++) {
+    const c = clients[i];
+    try {
+      await withTimeout(emailjs.send(SVC, TPL, {
+        to_email: c.email,
+        to_name: c.name,
+        subject: campaignSubject,
+        html_body: campaignHtml
+      }), 20000, 'Email');
+      sent++;
+    } catch (err) {
+      failed++;
+      console.error('Error enviando a', c.email, err);
+    }
+    const pct = Math.round(((i + 1) / clients.length) * 100);
+    document.getElementById('progFill').style.width = pct + '%';
+    document.getElementById('progText').textContent = `${i + 1} de ${clients.length}`;
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = 'Enviar a todos ahora';
+  showAlert('preview', `Campaña completada. Enviados: ${sent}. Fallidos: ${failed}.`, failed ? 'err' : 'ok');
+}
+
+window.addEventListener('load', async () => {
+  try {
+    await gsLoad();
+  } catch (err) {
+    showAlert('lista', 'Error inicial: ' + err.message, 'err');
+    document.getElementById('loadingBar').style.display = 'none';
+    document.getElementById('clientList').style.display = 'flex';
+  }
+});
+</script>
+</body>
+</html>
